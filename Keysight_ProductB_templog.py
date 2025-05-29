@@ -4,14 +4,15 @@ This script is for product B Testing. Used to log temperature data from keysight
 Specific channel mapped for testing.
 
 Author: Naresh Penugonda
-Version: 1.0
+Version: 1.0  # Initial
+Version: 1.01 # rounded off readings to 2 decimal places.
 
 """
 # ------------------- Module import section ---------------------
 import pyvisa
 import time
 from openpyxl import Workbook
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 # -------------------- Auto-detect DAQ970A ----------------------
 rm = pyvisa.ResourceManager()
@@ -74,9 +75,14 @@ for i in range(scan_cycles):
     time.sleep(10)  # wait for data acquisition
 
     readings = daq.query("FETC?").strip().split(',')
-    readings2 = Decimal(readings)
+
+    # Define precision: 2 decimal places
+    precision = Decimal('0.01')
+
+    decimal_data = [str(Decimal(val).quantize(precision, rounding=ROUND_HALF_UP)) for val in readings]
+
     timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
-    row = [timestamp] + readings2
+    row = [timestamp] + decimal_data
     ws.append(row)
 
     print(f"Scan {i + 1}: {row}")
